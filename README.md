@@ -115,6 +115,7 @@ class ChatActivity: EaseChatActivity() {
 ```
 
 4.2 页面跳转重定向 setCustomActivityRoute的使用方法参见下述示例代码 
+
 [详情参见](./app/src/main/kotlin/com/hyphenate/chatdemo/uikit/UIKitManager.kt) `UIKitManager.addProviders`方法中的 `setCustomActivityRoute` 设置
 
 ```Kotlin
