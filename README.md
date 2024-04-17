@@ -11,7 +11,7 @@
 ## 开发环境要求
 
 - Android Studio 4.0 及以上
-- Gradle 4.10.x 及以上
+- Gradle 8.0 及以上
 - targetVersion 26 及以上
 - Android SDK API 21 及以上
 - JDK 11 及以上
@@ -24,17 +24,41 @@
 
 3. 需要将服务端源码部署后填入`local.properties`文件中 格式如下 `APP_SERVER_DOMAIN = xxx服务器域名或ip地址xx`，手机号验证码暂时可以跳过，可以使用手机号后六位当验证码，服务端中的Appkey 要跟客户端的Appkey保持一致。Appserver主要提供了手机号验证码登录接口以及上传用户头像的接口，此接口主要的职能是根据用户的信息注册并生成ChatUIKit登录所需的token或者使用已注册的用户信息生成ChatUIKit登录所需的token，上传头像是一个普通的通用功能在此不过多赘述。
 
-4. 点击运行至目标设备上（注意：不支持arm模拟器，需要选择Rosetta模拟器或者真机）
-
 # ChatUIKit在Demo中的使用
 
 ## 1. 初始化
 
 [详情参见](./app/src/main/kotlin/com/hyphenate/chatdemo/DemoApplication.kt) 中 `DemoHelper.getInstance().initSDK()`方法。
 
+```Kotlin
+
+    DemoHelper.getInstance().initSDK()
+
+```
+
 ## 2. 登录
 
-[详情参见](./app/src/main/kotlin/com/hyphenate/chatdemo/viewmodel/EMClientRepository.kt)中`EaseIM.login`方法
+[详情参见](./app/src/main/kotlin/com/hyphenate/chatdemo/viewmodel/EMClientRepository.kt) 中 `EaseIM.login`方法
+
+```Kotlin
+
+//使用id和密码登录
+EaseIM.login(userName, pwd, 
+    onSuccess = {}, 
+    onError = { code, error -> 
+        
+    }
+)
+
+//使用EaseProfile用户协议对象 和 token 登录，注意token需要通过服务端生成
+EaseIM.login(EaseProfile(userName), token, 
+    onSuccess = {}, 
+    onError = { code, error -> 
+        
+    }
+)
+
+```
 
 ## 3. Provider使用及其最佳示例用法
 
@@ -74,16 +98,28 @@ EaseIM.setUserProfileProvider(object : EaseUserProfileProvider {
 })
 ```
 
-## 4.集成ChatUIKit中的类进行二次开发
+## 4.继承ChatUIKit中的类进行二次开发
 
-4.1 如何将继承于ease-im-kit中的子类页面跳转替换父类跳转
-
-[详情参见](./app/src/main/kotlin/com/hyphenate/chatdemo/uikit/UIKitManager.kt) `UIKitManager.addProviders`方法中的 `setCustomActivityRoute` 设置
-
-setCustomActivityRoute的使用方法参见下述示例代码
+4.1  举例：继承ChatUIKit中的EaseChatActivity
 
 ```Kotlin
 
+class ChatActivity: EaseChatActivity() {
+    override fun setChildSettings(builder: EaseChatFragment.Builder) {
+        super.setChildSettings(builder)
+        // builder 中提供了一系列的配置 如不满足还可以 ChatFragment 继承 EaseChatFragment 进行扩展
+        builder.setCustomFragment(ChatFragment()).setCustomAdapter(CustomMessagesAdapter())
+    }
+}
+
+```
+
+[详情参见](./app/src/main/kotlin/com/hyphenate/chatdemo/uikit/UIKitManager.kt) `UIKitManager.addProviders`方法中的 `setCustomActivityRoute` 设置
+
+4.2 页面跳转重定向 setCustomActivityRoute的使用方法参见下述示例代码
+
+```Kotlin
+// 用于修改UIKit内部跳转进行重定向，跳转为自己的实现类
 EaseIM.setCustomActivityRoute(object : EaseCustomActivityRoute {
     override fun getActivityRoute(intent: Intent): Intent? {
         intent.component?.className?.let {
